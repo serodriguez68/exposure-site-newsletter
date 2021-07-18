@@ -1,0 +1,39 @@
+# With multi-part yamls, we can specify configs for different profiles.
+# To run your app with a specific profile, add this to the IntelliJ's Runner Environment Variables:
+# `spring.profiles.active=dev`
+spring.config.activate.on-profile: dev
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/exposure-site-newsletter_dev
+    username: exposure-site-newsletter
+  jpa:
+    hibernate:
+      # Since we have the seed files data.sql and schema.sql, we don't want JPA to automatically create the schema
+      # for us
+      ddl-auto: none
+  sql:
+    init:
+      mode: always
+---
+spring.config.activate.on-profile: test
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/exposure-site-newsletter_test
+    username: exposure-site-newsletter
+
+---
+
+# If you activate a profile and a particular property does not have a value for that profile, the default value will
+# be loaded (e.g. if activated the profile "foo" the server port will be 8080).
+
+# Configs that are not specified for a specific profile, are always loaded
+
+logging.level.org.springframework.jdbc.datasource.init.ScriptUtils: debug
+logging.level.org.hibernate.engine.jdbc.env.internal.LobCreatorBuilderImpl: error
+
+spring:
+  jpa:
+    database: postgresql
+  sql:
+    init:
+      platform: postgres
