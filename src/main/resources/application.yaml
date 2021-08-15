@@ -8,7 +8,7 @@ spring:
     username: exposure-site-newsletter
   jpa:
     hibernate:
-      # Since we have the seed files data.sql and schema.sql, we don't want JPA to automatically create the schema
+      # Since we have the seed files datafoo.sql and schemafoo.sql, we don't want JPA to automatically create the schema
       # for us
       ddl-auto: none
   sql:
@@ -21,6 +21,20 @@ spring:
     url: jdbc:postgresql://localhost:5432/exposure-site-newsletter_test
     username: exposure-site-newsletter
 
+---
+spring.config.activate.on-profile: prod
+spring:
+  datasource:
+#    url: ${DATABASE_URL}
+#    username: ${SPRING_DATASOURCE_USERNAME}
+#    password: ${SPRING_DATASOURCE_PASSWORD}
+#    driver-class-name: org.postgresql.Driver
+    tomcat:
+      max-active: 10
+      remove-abandoned: true
+      max-idle: 5
+      min-idle: 2
+      initial-size: 5
 ---
 
 # If you activate a profile and a particular property does not have a value for that profile, the default value will
