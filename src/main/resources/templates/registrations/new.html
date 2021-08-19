@@ -7,6 +7,7 @@
 <body>
     <h1>New Registration</h1>
     <form action="#" th:action="@{/registrations}" th:object="${registration}" method="post">
+        <!--   TODO: insert CSRF configuration     -->
         <label>Email:
             <input type="text" th:field="*{email}" />
         </label>

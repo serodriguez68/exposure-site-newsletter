@@ -7,13 +7,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/exposure-site-newsletter_dev
     username: exposure-site-newsletter
   jpa:
-    hibernate:
-      # Since we have the seed files datafoo.sql and schemafoo.sql, we don't want JPA to automatically create the schema
-      # for us
-      ddl-auto: none
-  sql:
-    init:
-      mode: always
+    show-sql: true
+# Print SQL statements to logs
+logging.level.org.hibernate.SQL: DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 ---
 spring.config.activate.on-profile: test
 spring:
@@ -25,7 +22,8 @@ spring:
 spring.config.activate.on-profile: prod
 spring:
   datasource:
-#    url: ${DATABASE_URL}
+#    All of these are automatically handled by Heroku
+#    url: ${SPRING_DATASOURCE_URL}
 #    username: ${SPRING_DATASOURCE_USERNAME}
 #    password: ${SPRING_DATASOURCE_PASSWORD}
 #    driver-class-name: org.postgresql.Driver
@@ -48,6 +46,13 @@ logging.level.org.hibernate.engine.jdbc.env.internal.LobCreatorBuilderImpl: erro
 spring:
   jpa:
     database: postgresql
+    # We want to use Flyway to manage migrations on all envs
+    hibernate:
+      ddl-auto: none
   sql:
     init:
       platform: postgres
+      mode: never
+  flyway:
+    # Make the migration files to be located on a specific folder. e.g. db/migration/postgresql
+    locations: classpath:db/migration/{vendor}
