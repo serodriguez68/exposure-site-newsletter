@@ -44,6 +44,12 @@ logging.level.org.springframework.jdbc.datasource.init.ScriptUtils: debug
 logging.level.org.hibernate.engine.jdbc.env.internal.LobCreatorBuilderImpl: error
 
 spring:
+  profiles:
+    # Making the default profile 'test' helps run tests with the "test" profile without having to resort to
+    # annotating all tests with @ActiveProfiles or having to modify gradle env vars to run tests
+    # with active.profile=test.
+    # https://inspeerity.com/blog/setting-default-spring-profile-for-tests-with-override-option/
+    active: test
   jpa:
     database: postgresql
     # We want to use Flyway to manage migrations on all envs
