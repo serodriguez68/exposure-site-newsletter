@@ -5,5 +5,5 @@ import org.springframework.data.repository.CrudRepository
 import java.util.UUID
 
 interface SubscriberRepository: CrudRepository<Subscriber, UUID> {
-
+    fun existsByEmail(email: String): Boolean
 }
