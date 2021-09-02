@@ -6,10 +6,17 @@
 </head>
 <body>
     <h1>New Registration</h1>
-    <form action="#" th:action="@{/subscriptions}" th:object="${subscription}" method="post">
+
+    <form action="#" th:action="@{/subscriptions}" th:object="${newSubscriptionData}" method="post">
         <!--   TODO: insert CSRF configuration     -->
+
+        <p>Global and field errors</p>
+        <ul th:if="${#fields.hasErrors('*')}">
+            <li th:each="error : ${#fields.errors('*')}" th:text="${error}">error</li>
+        </ul>
+
         <label>Email:
-            <input type="text" th:field="*{email}" />
+            <input type="text" th:field="*{subscriberData.email}" />
         </label>
         <p><input type="submit" value="Get alerts" /></p>
     </form>

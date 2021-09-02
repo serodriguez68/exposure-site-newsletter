@@ -1,10 +1,12 @@
 package com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases
 
+/* Unfortunately, fields need to be vars for spring to map form params
+* to fields */
 data class NewSubscriptionData(
-    val subscriberData: SubscriberData,
-    val suburbsToWatchData: List<SuburbData>
+    var subscriberData: SubscriberData = SubscriberData(),
+    var suburbsToWatchData: List<SuburbData> = listOf(SuburbData(1))
 )
 
-data class SubscriberData(val email: String)
+data class SubscriberData(var email: String = "")
 
-data class SuburbData(val id: Int)
+data class SuburbData(var id: Int)
