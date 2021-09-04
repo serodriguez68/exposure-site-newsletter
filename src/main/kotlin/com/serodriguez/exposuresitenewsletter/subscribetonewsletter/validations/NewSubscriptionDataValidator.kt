@@ -43,7 +43,7 @@ class NewSubscriptionDataValidator {
                 return ValidationError(
                     property = "subscriberData.email",
                     value = this,
-                    message = "is already taken"
+                    message = "email is already taken"
                 ).invalidNel()
             }
             return subscriberData.valid()

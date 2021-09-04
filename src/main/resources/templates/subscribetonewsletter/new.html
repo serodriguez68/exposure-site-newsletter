@@ -18,6 +18,15 @@
         <label>Email:
             <input type="text" th:field="*{subscriberData.email}" />
         </label>
+
+        <ul>
+            <li th:each="suburb : ${availableSuburbs}">
+                <input type="checkbox" th:field="*{suburbsToWatchData}" th:value="${suburb.id}" />
+                <label th:for="${#ids.prev('suburbsToWatchData')}"
+                       th:text="${suburb.id}">3000</label>
+            </li>
+        </ul>
+
         <p><input type="submit" value="Get alerts" /></p>
     </form>
 </body>

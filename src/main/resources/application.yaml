@@ -11,6 +11,8 @@ spring:
 # Print SQL statements to logs
 logging.level.org.hibernate.SQL: DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+# Highest level of longing for Spring in dev
+logging.level.org.springframework: TRACE
 ---
 spring.config.activate.on-profile: test
 spring:

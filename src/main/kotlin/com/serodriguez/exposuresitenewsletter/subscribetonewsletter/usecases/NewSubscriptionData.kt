@@ -4,7 +4,7 @@ package com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases
 * to fields */
 data class NewSubscriptionData(
     var subscriberData: SubscriberData = SubscriberData(),
-    var suburbsToWatchData: List<SuburbData> = listOf(SuburbData(1))
+    var suburbsToWatchData: List<SuburbData> = listOf()
 )
 
 data class SubscriberData(var email: String = "")

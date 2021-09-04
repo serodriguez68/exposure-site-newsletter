@@ -6,6 +6,7 @@ import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.New
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscribeAndWatch
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscribeAndWatchError
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscriberData
+import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SuburbData
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,8 +15,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.ModelAndView
 
 @Controller
@@ -31,11 +34,12 @@ class SubscriptionsController(
             "newSubscriptionData",
             NewSubscriptionData(SubscriberData())
         )
+        modelAndView.addObject("availableSuburbs", getAvailableSuburbs())
         return modelAndView
     }
 
     @PostMapping
-    fun create(newSubscriptionData: NewSubscriptionData, bindingResult: BindingResult):
+    fun create(@ModelAttribute newSubscriptionData: NewSubscriptionData, bindingResult: BindingResult):
         ModelAndView = runBlocking {
         subscribeAndWatch.call(newSubscriptionData).fold(
             { error ->
@@ -43,6 +47,8 @@ class SubscriptionsController(
                     is SubscribeAndWatchError.NotValid -> {
                         addValidationErrorsToBindingResult(error.reasons, bindingResult)
                         val modelAndView = ModelAndView("subscribetonewsletter/new")
+                        modelAndView.addObject("newSubscriptionData", newSubscriptionData)
+                        modelAndView.addObject("availableSuburbs", getAvailableSuburbs())
                         modelAndView.status = HttpStatus.UNPROCESSABLE_ENTITY
                         modelAndView
                     }
@@ -50,11 +56,22 @@ class SubscriptionsController(
                 }
             },
             {
-                val modelAndView = ModelAndView("subscribetonewsletter/new")
-                modelAndView.addObject("newSubscriptionData", NewSubscriptionData(SubscriberData(email = "submitted")))
+                val modelAndView = ModelAndView("redirect:/thank-you")
+                modelAndView.addObject("email", it.email)
                 modelAndView
             }
         )
+    }
+
+    @GetMapping("/thank-you")
+    fun thankYou(@RequestParam(value = "email", required = true) email: String): ModelAndView {
+        val modelAndView = ModelAndView("subscribetonewsletter/thank-you")
+        modelAndView.addObject("email", email)
+        return modelAndView
+    }
+
+    private fun getAvailableSuburbs(): List<SuburbData> {
+        return listOf(SuburbData(3000), SuburbData(3008))
     }
 
     /* TODO: move this out to a general helper fun */
