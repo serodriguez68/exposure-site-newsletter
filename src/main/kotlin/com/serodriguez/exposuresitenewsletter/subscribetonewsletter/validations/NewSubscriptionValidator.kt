@@ -7,21 +7,34 @@ import arrow.core.invalidNel
 import arrow.core.valid
 import arrow.core.zip
 import com.serodriguez.exposuresitenewsletter.base.ValidationError
+import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.repositories.SubscriberRepository
+import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.repositories.SuburbRepository
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.NewSubscriptionDTO
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscribeAndWatchError
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscriberData
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SuburbData
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class NewSubscriptionDataValidator {
+class NewSubscriptionValidator(
+    @Autowired val subscriberRepo: SubscriberRepository,
+    @Autowired val suburbsRepo: SuburbRepository,
+) {
+
+    private val emailRegex = Regex(
+        "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@"
+            + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+            + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\."
+            + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+            + "[0-9]{1,2}|25[0-5]|2[0-4][0-9]))|"
+            + "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
+    )
 
     fun validate(
-        newSubscriptionDTO: NewSubscriptionDTO,
-        emailExistenceChecker: (String) -> Boolean
-    ): Validated<SubscribeAndWatchError.NotValid, NewSubscriptionDTO> {
+        newSubscriptionDTO: NewSubscriptionDTO): Validated<SubscribeAndWatchError.NotValid, NewSubscriptionDTO> {
         val maybeValidatedData =
-            validateSubscriberData(newSubscriptionDTO.subscriberData, emailExistenceChecker).zip(
+            validateSubscriberData(newSubscriptionDTO.subscriberData).zip(
                 validateSuburbsToWatchData(newSubscriptionDTO.suburbsToWatchData)
         ) { _, _ -> newSubscriptionDTO }
 
@@ -29,7 +42,7 @@ class NewSubscriptionDataValidator {
     }
 
 
-    private fun validateSubscriberData(subscriberData: SubscriberData, emailExistenceChecker: (String) -> Boolean):
+    private fun validateSubscriberData(subscriberData: SubscriberData):
         ValidatedNel<ValidationError, SubscriberData> {
         with(subscriberData.email) {
             if (isBlank()) {
@@ -39,7 +52,14 @@ class NewSubscriptionDataValidator {
                     message = "email cannot be empty"
                 ).invalidNel()
             }
-            if (isNotBlank() && emailExistenceChecker(this)) {
+            if(!this.matches(emailRegex)) {
+                return ValidationError(
+                    property = "subscriberData.email",
+                    value = this,
+                    message = "invalid email format"
+                ).invalidNel()
+            }
+            if (isNotBlank() && subscriberRepo.existsByEmail(this)) {
                 return ValidationError(
                     property = "subscriberData.email",
                     value = this,
@@ -60,9 +80,10 @@ class NewSubscriptionDataValidator {
             ).invalidNel()
         }
 
+        val watchableSuburbIds = suburbsRepo.findAll().map { it.id!! }
         val invalidSuburbs = mutableListOf<ValidationError>()
         suburbsToWatch.forEachIndexed { index, suburbData ->
-            if (suburbData.id == null) {
+            if (!watchableSuburbIds.contains(suburbData.id) ) {
                 invalidSuburbs.add(
                     ValidationError(
                         property = "suburbsToWatchData[$index].id",
