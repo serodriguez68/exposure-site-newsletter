@@ -32,7 +32,7 @@ class SubscriptionsController(
     fun new(): ModelAndView {
         val modelAndView = ModelAndView("subscribetonewsletter/new")
         modelAndView.addObject(
-            "newSubscriptionData",
+            "newSubscriptionDTO",
             NewSubscriptionDTO(SubscriberData())
         )
         modelAndView.addObject("watchableSuburbs", getWatchableSuburbs.call())
@@ -48,7 +48,7 @@ class SubscriptionsController(
                     is SubscribeAndWatchError.NotValid -> {
                         addValidationErrorsToBindingResult(error.reasons, bindingResult)
                         val modelAndView = ModelAndView("subscribetonewsletter/new")
-                        modelAndView.addObject("newSubscriptionData", newSubscriptionDTO)
+                        modelAndView.addObject("newSubscriptionDTO", newSubscriptionDTO)
                         modelAndView.addObject("watchableSuburbs", getWatchableSuburbs.call())
                         modelAndView.status = HttpStatus.UNPROCESSABLE_ENTITY
                         modelAndView
