@@ -7,7 +7,7 @@ import arrow.core.invalidNel
 import arrow.core.valid
 import arrow.core.zip
 import com.serodriguez.exposuresitenewsletter.base.ValidationError
-import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.NewSubscriptionData
+import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.NewSubscriptionDTO
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscribeAndWatchError
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscriberData
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SuburbData
@@ -17,13 +17,13 @@ import org.springframework.stereotype.Component
 class NewSubscriptionDataValidator {
 
     fun validate(
-        newSubscriptionData: NewSubscriptionData,
+        newSubscriptionDTO: NewSubscriptionDTO,
         emailExistenceChecker: (String) -> Boolean
-    ): Validated<SubscribeAndWatchError.NotValid, NewSubscriptionData> {
+    ): Validated<SubscribeAndWatchError.NotValid, NewSubscriptionDTO> {
         val maybeValidatedData =
-            validateSubscriberData(newSubscriptionData.subscriberData, emailExistenceChecker).zip(
-                validateSuburbsToWatchData(newSubscriptionData.suburbsToWatchData)
-        ) { _, _ -> newSubscriptionData }
+            validateSubscriberData(newSubscriptionDTO.subscriberData, emailExistenceChecker).zip(
+                validateSuburbsToWatchData(newSubscriptionDTO.suburbsToWatchData)
+        ) { _, _ -> newSubscriptionDTO }
 
         return maybeValidatedData.mapLeft { SubscribeAndWatchError.NotValid(reasons = it) }
     }

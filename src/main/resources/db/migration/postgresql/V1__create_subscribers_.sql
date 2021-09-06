@@ -1,6 +1,6 @@
 CREATE TABLE subscribers
 (
-    id    UUID         NOT NULL,
+    id    UUID         NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
-    CONSTRAINT pk_subscribers PRIMARY KEY (id)
+    created_at    TIMESTAMP with time zone NOT NULL
 );

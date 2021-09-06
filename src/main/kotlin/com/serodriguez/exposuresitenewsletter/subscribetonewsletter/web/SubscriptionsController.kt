@@ -2,11 +2,11 @@ package com.serodriguez.exposuresitenewsletter.subscribetonewsletter.web
 
 import arrow.core.Nel
 import com.serodriguez.exposuresitenewsletter.base.ValidationError
-import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.NewSubscriptionData
+import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.GetWatchableSuburbs
+import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.NewSubscriptionDTO
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscribeAndWatch
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscribeAndWatchError
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SubscriberData
-import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases.SuburbData
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,7 +24,8 @@ import org.springframework.web.servlet.ModelAndView
 @Controller
 @RequestMapping("/", "/subscriptions")
 class SubscriptionsController(
-    @Autowired val subscribeAndWatch: SubscribeAndWatch
+    @Autowired val subscribeAndWatch: SubscribeAndWatch,
+    @Autowired val getWatchableSuburbs: GetWatchableSuburbs,
 ) {
 
     @GetMapping("/new", "/")
@@ -32,23 +33,23 @@ class SubscriptionsController(
         val modelAndView = ModelAndView("subscribetonewsletter/new")
         modelAndView.addObject(
             "newSubscriptionData",
-            NewSubscriptionData(SubscriberData())
+            NewSubscriptionDTO(SubscriberData())
         )
-        modelAndView.addObject("availableSuburbs", getAvailableSuburbs())
+        modelAndView.addObject("watchableSuburbs", getWatchableSuburbs.call())
         return modelAndView
     }
 
     @PostMapping
-    fun create(@ModelAttribute newSubscriptionData: NewSubscriptionData, bindingResult: BindingResult):
+    fun create(@ModelAttribute newSubscriptionDTO: NewSubscriptionDTO, bindingResult: BindingResult):
         ModelAndView = runBlocking {
-        subscribeAndWatch.call(newSubscriptionData).fold(
+        subscribeAndWatch.call(newSubscriptionDTO).fold(
             { error ->
                 when (error) {
                     is SubscribeAndWatchError.NotValid -> {
                         addValidationErrorsToBindingResult(error.reasons, bindingResult)
                         val modelAndView = ModelAndView("subscribetonewsletter/new")
-                        modelAndView.addObject("newSubscriptionData", newSubscriptionData)
-                        modelAndView.addObject("availableSuburbs", getAvailableSuburbs())
+                        modelAndView.addObject("newSubscriptionData", newSubscriptionDTO)
+                        modelAndView.addObject("watchableSuburbs", getWatchableSuburbs.call())
                         modelAndView.status = HttpStatus.UNPROCESSABLE_ENTITY
                         modelAndView
                     }
@@ -68,10 +69,6 @@ class SubscriptionsController(
         val modelAndView = ModelAndView("subscribetonewsletter/thank-you")
         modelAndView.addObject("email", email)
         return modelAndView
-    }
-
-    private fun getAvailableSuburbs(): List<SuburbData> {
-        return listOf(SuburbData(3000), SuburbData(3008))
     }
 
     /* TODO: move this out to a general helper fun */

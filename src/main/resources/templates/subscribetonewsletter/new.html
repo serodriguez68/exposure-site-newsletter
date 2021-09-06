@@ -20,10 +20,10 @@
         </label>
 
         <ul>
-            <li th:each="suburb : ${availableSuburbs}">
-                <input type="checkbox" th:field="*{suburbsToWatchData}" th:value="${suburb.id}" />
+            <li th:each="watchableSuburb : ${watchableSuburbs}">
+                <input type="checkbox" th:field="*{suburbsToWatchData}" th:value="${watchableSuburb.id}" />
                 <label th:for="${#ids.prev('suburbsToWatchData')}"
-                       th:text="${suburb.id}">3000</label>
+                       th:text="|${watchableSuburb.name} (${watchableSuburb.postCode})|">Docklands (3008)</label>
             </li>
         </ul>
 
