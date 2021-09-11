@@ -2,6 +2,7 @@ package com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases
 
 import arrow.core.nonEmptyListOf
 import com.serodriguez.exposuresitenewsletter.base.ValidationError
+import com.serodriguez.exposuresitenewsletter.base.mail.FakeMailServer
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.entities.Subscriber
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.entities.Suburb
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.repositories.SubscriberRepository
@@ -21,14 +22,15 @@ internal class SubscribeAndWatchTest(
     @Autowired val subscribeAndWatch: SubscribeAndWatch,
     @Autowired val subscriberRepo: SubscriberRepository,
     @Autowired val suburbRepo: SuburbRepository,
-    @Autowired val watchesRepo: WatchRepository
-) : BaseIntegrationTest() {
+    @Autowired val watchesRepo: WatchRepository,
+    @Autowired val fakeMailServer: FakeMailServer
+) : BaseIntegrationTest(fakeMailServer) {
 
     @BeforeEach
     fun `create some suburbs`() {
         suburbRepo.saveAll(
             listOf(
-                Suburb(postCode =  "3000", name = "CBD"),
+                Suburb(postCode = "3000", name = "CBD"),
                 Suburb(postCode = "3008", name = "Docklands")
             )
         )
@@ -128,8 +130,24 @@ internal class SubscribeAndWatchTest(
         val storedWatches = watchesRepo.findAll()
         assertEquals(2, storedWatches.count())
         assertTrue(storedWatches.all { it.subscriber.id == theSubscriber.id })
-        assertTrue(storedWatches.map{ it.suburb.postCode }.contains("3000"))
-        assertTrue(storedWatches.map{ it.suburb.postCode }.contains("3008"))
+        assertTrue(storedWatches.map { it.suburb.postCode }.contains("3000"))
+        assertTrue(storedWatches.map { it.suburb.postCode }.contains("3008"))
+    }
+
+    @Test
+    fun `sends welcome email`() = runBlocking<Unit> {
+        val newSubscriptionDTO = NewSubscriptionDTO(
+            SubscriberData(email = "foo@example.com"),
+            allSuburbs(),
+        )
+        subscribeAndWatch.call(newSubscriptionDTO)
+        val receivedMessages = fakeMailServer.messages()
+        assertEquals(1, receivedMessages.size)
+        val message =  receivedMessages.first()
+        assertEquals("Thank you for registering to the newsletter", message.subject)
+        assertEquals(1, message.to?.size)
+        assertEquals("foo@example.com", message.to?.first())
+        assertTrue(message.text?.contains("body", ignoreCase = true)!!)
     }
 
     // Left here to play with transactions
@@ -149,5 +167,4 @@ internal class SubscribeAndWatchTest(
     // }
 
     private fun allSuburbs(): List<SuburbData> = suburbRepo.findAll().map { SuburbData(it.id!!) }
-
 }

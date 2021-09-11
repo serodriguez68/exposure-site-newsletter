@@ -8,6 +8,12 @@ spring:
     username: exposure-site-newsletter
   jpa:
     show-sql: true
+  # Configuration for mail trap
+  mail:
+    host: smtp.mailtrap.io
+    port: 2525
+    username: d45041493ac7a1
+    password: ${mailtrap.password}
 
 # Logging
 ## Print SQL statements to logs
@@ -23,6 +29,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/exposure-site-newsletter_test
     username: exposure-site-newsletter
+# Mail in tests use a simple dependency swap
 
 # Logging
 ## Print SQL statements to logs

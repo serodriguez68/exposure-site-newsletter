@@ -1,13 +1,18 @@
 package support
 
+import com.serodriguez.exposuresitenewsletter.base.mail.FakeMailServer
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
-abstract class BaseIntegrationTest {
+@ActiveProfiles("test")
+abstract class BaseIntegrationTest(
+    private val fakeMailServer: FakeMailServer? = null
+) {
     @Autowired
     lateinit var flyway: Flyway
 
@@ -22,5 +27,10 @@ abstract class BaseIntegrationTest {
     @AfterEach
     fun teardownDB() {
         flyway.clean()
+    }
+
+    @BeforeEach
+    fun resetFakeMailServer() {
+        fakeMailServer?.reset()
     }
 }
