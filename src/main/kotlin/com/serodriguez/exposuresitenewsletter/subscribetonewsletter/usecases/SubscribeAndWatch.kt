@@ -2,6 +2,7 @@ package com.serodriguez.exposuresitenewsletter.subscribetonewsletter.usecases
 
 import arrow.core.Either
 import arrow.core.computations.either
+import com.serodriguez.exposuresitenewsletter.base.TransactionProvider
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.entities.Subscriber
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.entities.Watch
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.repositories.SubscriberRepository
@@ -10,8 +11,6 @@ import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.repositories
 import com.serodriguez.exposuresitenewsletter.subscribetonewsletter.validations.NewSubscriptionValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 class SubscribeAndWatch(
@@ -19,7 +18,7 @@ class SubscribeAndWatch(
     @Autowired val subscriberRepo: SubscriberRepository,
     @Autowired val watchRepo: WatchRepository,
     @Autowired val suburbsRepo: SuburbRepository,
-    @Autowired val transactionManager: PlatformTransactionManager
+    @Autowired val transactionProvider: TransactionProvider
 ) {
     suspend fun call(newSubscriptionDTO: NewSubscriptionDTO): Either<SubscribeAndWatchError, Subscriber> = either {
 
@@ -32,10 +31,7 @@ class SubscribeAndWatch(
     }
 
     private fun storeSubscriberAndWatches(subscriptionData: NewSubscriptionDTO): Subscriber {
-        // TODO: move this transaction code to a base/transaction provider
-        val transactionTemplate = TransactionTemplate(transactionManager)
-        val subscriber = transactionTemplate.execute { status ->
-
+        val subscriber = transactionProvider.executeGettingResult() { status ->
             val savedSubscriber = subscriberRepo.save(
                 Subscriber(email = subscriptionData.subscriberData.email)
             )
@@ -48,6 +44,6 @@ class SubscribeAndWatch(
 
             savedSubscriber
         }
-        return subscriber!!
+        return subscriber
     }
 }
